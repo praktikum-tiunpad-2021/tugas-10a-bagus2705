@@ -3,6 +3,7 @@
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace strukdat {
 
@@ -43,13 +44,11 @@ class graph {
    * @param val nilai dari vertex yang akan ditambahkan
    */
   void add_vertex(const VertexType &val) {
-    // Contoh implementasi. (BOLEH DIUBAH)
-    // inisialisasi _adj_list[val] dengan list kosong
     _adj_list.insert(std::make_pair(val, list_type()));
   }
 
   void remove_vertex(const VertexType &val) {
-    // TODO: Implementasikan!
+    _adj_list.erase(val);
   }
 
   /**
@@ -59,7 +58,8 @@ class graph {
    * @param val2 nilai vertex 2
    */
   void add_edge(const VertexType &val1, const VertexType val2) {
-    // TODO: Implementasikan!
+    _adj_list[val1].insert(val2);
+    _adj_list[val2].insert(val1);
   }
 
   /**
@@ -68,7 +68,8 @@ class graph {
    * @param val nilai dari vertex yang akan dihapus
    */
   void remove_edge(const VertexType &val1, const VertexType &val2) {
-    // TODO: Implementasikan!
+    _adj_list[val1].erase(val2);
+    _adj_list[val2].erase(val1);
   }
 
   /**
@@ -80,7 +81,7 @@ class graph {
    * @return jumlah node pada graph
    */
   size_t order() const {
-    // TODO: Implementasikan!
+    return _adj_list.size();
   }
 
   /**
@@ -93,6 +94,11 @@ class graph {
    */
   bool is_edge(const VertexType &val1, const VertexType &val2) const {
     // TODO: Implementasikan!
+    if(_adj_list.at(val1).find(val2) == _adj_list.at(val1).end()){
+      return false;
+    }else if(_adj_list.at(val2).find(val1) == _adj_list.at(val2).end()){
+      return false;
+    }else return true;
   }
 
   /**
@@ -103,7 +109,24 @@ class graph {
    */
   void bfs(const VertexType &root,
            std::function<void(const VertexType &)> func) const {
-    // TODO: Implementasikan!
+    std::unordered_map<VertexType, bool> visited;
+    for(auto node = _adj_list.begin(); node != _adj_list.end(); node++){
+      visited.insert(std::make_pair(node->first, false));
+    }
+    std::vector<VertexType> queue;
+    queue.push_back(root);
+    visited[root] = true;
+    while(!queue.empty()){
+      VertexType temp = queue.front();
+      queue.erase(queue.begin());
+      func(temp);
+      for(auto node= _adj_list.at(temp).begin(); node != _adj_list.at(temp).end();node++){
+        if(!visited[*node]){
+          visited[*node] = true;
+          queue.push_back(*node);
+        }
+      }
+    }
   }
 
   /**
@@ -114,9 +137,33 @@ class graph {
    */
   void dfs(const VertexType &root,
            std::function<void(const VertexType &)> func) const {
-    // TODO: Implementasikan!
+    std::unordered_map<VertexType, bool> visited;
+    for(auto node = _adj_list.begin(); node != _adj_list.end(); node++){
+      visited.insert(std::make_pair(node->first, false));
+    }
+    std::vector<VertexType> stack;
+    stack.insert(stack.begin(), root);
+    while(!stack.empty()){
+      VertexType temp = stack.front();
+      if(!visited[temp]){
+        visited[temp] = true;
+        func(temp);
+      }
+      auto it = _adj_list.at(temp).begin();
+      while(it != _adj_list.at(temp).end()){
+        if(!visited[*it]){
+          temp = *it;
+          stack.insert(stack.begin(), temp);
+          break;
+        }
+        it++;
+      }
+      if(it == _adj_list.at(temp).end()){
+        temp = stack.front();
+        stack.erase(stack.begin());
+      }
+    }
   }
-
  private:
   /**
    * @brief Adjacency list dari graph
